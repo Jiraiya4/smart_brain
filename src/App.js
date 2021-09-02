@@ -17,11 +17,30 @@ class App extends Component {
     super(props);
     this.state = {
       input: '',
-      imageUrl: ''
+      imageUrl: '',
+      box: {}
     }
     this.particlesInit = this.particlesInit.bind(this);
     this.particlesLoaded = this.particlesLoaded.bind(this);
   }
+
+  calculateFaceLocation = (data) => {
+    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById('inputImage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+    return {
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - (clarifaiFace.right_col * width),
+      bottomRow: height - (clarifaiFace.bottom_row * height)
+    }
+  }
+
+  displayFaceBox = (Box) => {
+    this.setState({box: Box});
+  }
+  //https://www.faceapp.com/img/content/compare/beard-example-before@3x.jpg
 
   onInputChange = (event) => {
     this.setState({input: event.target.value})
@@ -30,10 +49,8 @@ class App extends Component {
   onButtonSubmit = () => {
     this.setState({imageUrl: this.state.input});
     app.models.predict('f76196b43bbd45c99b4f3cd8e8b40a8a', this.state.input)
-    .then(
-      function(response){
-        console.log(response.outputs[0].data.regions[0].region_info.bounding_box);//
-      })
+    .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
+    .catch(err => console.log(err))
   }
 
   particlesInit(main) {
@@ -133,7 +150,7 @@ class App extends Component {
         onInputChange={this.onInputChange}
         onButtonSubmit={this.onButtonSubmit}
         />
-        <FaceRecognation imageUrl={this.state.imageUrl}/>
+        <FaceRecognation box={this.state.box} imageUrl={this.state.imageUrl}/>
       </div>
     );
   }
