@@ -7,6 +7,8 @@ import Navigation from './components/Navigation/Navigation';
 import Rank from './components/Rank/Rank';
 import Clarifai from 'clarifai';
 import FaceRecognation from './components/FaceRecognation/FaceRecognation';
+import SignIn from './components/SignIn/SignIn';
+import Register from './components/Register/Register';
 
 const app = new Clarifai.App({
  apiKey: 'd4182f77bcf646ca8e4a37f4115b05ec'
@@ -18,7 +20,9 @@ class App extends Component {
     this.state = {
       input: '',
       imageUrl: '',
-      box: {}
+      box: {},
+      route: 'signin',
+      isSignedIn: false
     }
     this.particlesInit = this.particlesInit.bind(this);
     this.particlesLoaded = this.particlesLoaded.bind(this);
@@ -43,14 +47,24 @@ class App extends Component {
   //https://www.faceapp.com/img/content/compare/beard-example-before@3x.jpg
 
   onInputChange = (event) => {
-    this.setState({input: event.target.value})
+    this.setState({imageUrl: event.target.value})
   }
 
   onButtonSubmit = () => {
-    this.setState({imageUrl: this.state.input});
-    app.models.predict('f76196b43bbd45c99b4f3cd8e8b40a8a', this.state.input)
+    //this.setState({imageUrl: this.state.input});
+    app.models.predict('f76196b43bbd45c99b4f3cd8e8b40a8a', this.state.imageUrl)
     .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
     .catch(err => console.log(err))
+  }
+
+  onRouteChange = (auth) => {
+    if(auth === 'home'){
+      this.setState({...this.state, route: auth, isSignedIn: true})
+    } else if (auth === 'signin') {
+      this.setState({...this.state, route: auth, isSignedIn: false})
+    } else {
+      this.setState({...this.state, route: auth, isSignedIn: false})
+    }
   }
 
   particlesInit(main) {
@@ -63,6 +77,7 @@ class App extends Component {
     console.log(container);
   }
   render(){
+    const {isSignedIn, imageUrl, route, box} = this.state;
     return (
       <div className="App">
         <Particles className='particles'
@@ -143,14 +158,24 @@ class App extends Component {
           detectRetina: true,
         }}
       />
-        <Navigation />
-        <Logo />
-        <Rank />
-        <ImageLinkForm 
-        onInputChange={this.onInputChange}
-        onButtonSubmit={this.onButtonSubmit}
-        />
-        <FaceRecognation box={this.state.box} imageUrl={this.state.imageUrl}/>
+        <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange}/>
+        {route === 'home' 
+        ? 
+        <div>
+          <Logo />
+          <Rank />
+          <ImageLinkForm 
+              onInputChange={this.onInputChange}
+              onButtonSubmit={this.onButtonSubmit}
+          />
+          <FaceRecognation box={box} imageUrl={imageUrl}/>
+        </div>
+        :(
+          route === 'signin'
+          ? <SignIn onRouteChange={this.onRouteChange}/>
+          : <Register onRouteChange={this.onRouteChange}/>
+        )
+        }
       </div>
     );
   }
