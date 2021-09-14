@@ -1,7 +1,7 @@
 import s from "./Navigation.module.css"
 import 'tachyons'
 
-const Navigation = ({ onRouteChange, isSignedIn }) => {
+const Navigation = ({ onRouteChange, isSignedIn, onDeleteAccount }) => {
     return (
         <div>
             {isSignedIn
@@ -11,6 +11,11 @@ const Navigation = ({ onRouteChange, isSignedIn }) => {
                         onClick={() => onRouteChange('signin')}
                         className='f3 link dim black underline pa3 pointer'>
                         Sign Out
+                    </p>
+                    <p
+                        onClick={onDeleteAccount}
+                        className='f3 link dim black underline pa3 pointer'>
+                        Delete account
                     </p>
                 </nav>
                 :

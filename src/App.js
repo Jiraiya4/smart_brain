@@ -22,7 +22,14 @@ class App extends Component {
       imageUrl: '',
       box: {},
       route: 'signin',
-      isSignedIn: false
+      isSignedIn: false,
+      user: {
+        id: '',
+        name: '',
+        email: '',
+        entries: '',
+        joined: ''
+      }
     }
     this.particlesInit = this.particlesInit.bind(this);
     this.particlesLoaded = this.particlesLoaded.bind(this);
@@ -41,6 +48,25 @@ class App extends Component {
     }
   }
 
+  loadUser = (data) => {
+    this.setState({
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined: data.joined
+      }
+    })
+    console.log(this.state.user)
+  }
+
+  componentDidMount(){
+    fetch('http://localhost:3000/')
+      .then(response => response.json())
+      .then(console.log)
+  }
+
   displayFaceBox = (Box) => {
     this.setState({box: Box});
   }
@@ -50,11 +76,34 @@ class App extends Component {
     this.setState({imageUrl: event.target.value})
   }
 
-  onButtonSubmit = () => {
+  zeroingURL = () => {
+    this.setState({imageUrl: ''})
+  }
+
+  onPictureSubmit = () => {
     //this.setState({imageUrl: this.state.input});
     app.models.predict('f76196b43bbd45c99b4f3cd8e8b40a8a', this.state.imageUrl)
     .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
     .catch(err => console.log(err))
+
+    fetch('http://localhost:3000/image', {
+      method: 'put',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        id : this.state.user.id
+      })
+    })
+    .then(res => res.json())
+    .then(count => {
+      setTimeout(() => {
+        this.setState({
+          user:{
+            ...this.state.user,
+            entries: count
+          }
+        })
+      },1000)
+    })
   }
 
   onRouteChange = (auth) => {
@@ -67,14 +116,25 @@ class App extends Component {
     }
   }
 
+  onDeleteAccount = () => {
+    fetch('http://localhost:3000/profile/delete', {
+      method: 'delete',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        email: this.state.user.email
+      })
+    })
+    this.onRouteChange('signin');
+  }
+
   particlesInit(main) {
-    console.log(main);
+    //console.log(main);
 
     // you can initialize the tsParticles instance (main) here, adding custom shapes or presets
   }
 
   particlesLoaded(container) {
-    console.log(container);
+    //console.log(container);
   }
   render(){
     const {isSignedIn, imageUrl, route, box} = this.state;
@@ -158,22 +218,22 @@ class App extends Component {
           detectRetina: true,
         }}
       />
-        <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange}/>
+        <Navigation onDeleteAccount={this.onDeleteAccount} isSignedIn={isSignedIn} onRouteChange={this.onRouteChange}/>
         {route === 'home' 
         ? 
         <div>
           <Logo />
-          <Rank />
+          <Rank name={this.state.user.name} entries={this.state.user.entries}/>
           <ImageLinkForm 
               onInputChange={this.onInputChange}
-              onButtonSubmit={this.onButtonSubmit}
+              onPictureSubmit={this.onPictureSubmit}
           />
           <FaceRecognation box={box} imageUrl={imageUrl}/>
         </div>
         :(
           route === 'signin'
-          ? <SignIn onRouteChange={this.onRouteChange}/>
-          : <Register onRouteChange={this.onRouteChange}/>
+          ? <SignIn zeroingURL={this.zeroingURL} loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
+          : <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
         )
         }
       </div>
