@@ -1,0 +1,8 @@
+.incorrectDataError {
+    border: 1px solid red;
+    color: #df3064;
+    padding: 7px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}

@@ -1,11 +1,14 @@
 import React from 'react';
+import {signInSchema} from '../../Validations/formValidations';
+import s from './SignIn.module.css'
 
 class SignIn extends React.Component {
     constructor(props){
         super(props);
         this.state = {
             signInEmail: '',
-            signInPassword: ''
+            signInPassword: '',
+            incorrectData: false
         }
     }
 
@@ -17,7 +20,14 @@ class SignIn extends React.Component {
         this.setState({signInPassword: event.target.value});
     }
 
-    onSubmitSignIn = () => {
+    onSubmitSignIn = async (event) => {
+        event.preventDefault();
+        const isValid = await signInSchema.isValid({
+            email: this.state.signInEmail,
+            password: this.state.signInPassword
+        })
+        isValid 
+        ?
         fetch('http://localhost:3000/signin', {
             method: 'post',
             headers: {'Content-Type' : 'application/json'},
@@ -26,14 +36,20 @@ class SignIn extends React.Component {
                 password: this.state.signInPassword
             })
         })
-        .then(res => res.json())
+        .then(res => {
+            if(res.status === 400) this.setState({incorrectData: true});
+            return res.json()
+        })
         .then(user => {
             if(user.id){ // does the user exist? Did we receive a user with a property of id?
                 this.props.loadUser(user);
                 this.props.onRouteChange('home')
                 this.props.zeroingURL();
+                this.setState({incorrectData: false});
             }
         })
+        :
+        this.setState({incorrectData: true});
     }
 
     render() {
@@ -41,7 +57,7 @@ class SignIn extends React.Component {
         return (
             <article className="br3 ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw6 shadow-2 center">
                 <main className="pa4 black-80">
-                    
+                    <form onSubmit={this.onSubmitSignIn}>
                         <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
                             <legend className="f1 fw6 ph0 mh0">Sign In</legend>
                             <div className="mt3">
@@ -52,11 +68,11 @@ class SignIn extends React.Component {
                                 <label className="db fw6 lh-copy f6" htmlFor="password">Password</label>
                                 <input onChange={this.onPasswordChange} className="b pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="password" name="password" id="password" />
                             </div>
+                            {this.state.incorrectData ? <div className={s.incorrectDataError}>Incorrect Data</div> : <></>}
                             <label className="pa0 ma0 lh-copy f6 pointer"><input type="checkbox" /> Remember me</label>
                         </fieldset>
                         <div className="">
                             <input 
-                            onClick={this.onSubmitSignIn}
                             className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib" 
                             type="submit" value="Sign in" 
                             />
@@ -65,7 +81,7 @@ class SignIn extends React.Component {
                             <p onClick={() => onRouteChange('register')} className="f4 fw6 link dim black db pointer">Register</p>
                             <a href="#0" className="f6 link dim black db">Forgot your password?</a>
                         </div>
-                    
+                    </form>
                 </main>
             </article>
         )
