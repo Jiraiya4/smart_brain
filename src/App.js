@@ -5,14 +5,9 @@ import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import Logo from './components/Logo/Logo';
 import Navigation from './components/Navigation/Navigation';
 import Rank from './components/Rank/Rank';
-import Clarifai from 'clarifai';
 import FaceRecognation from './components/FaceRecognation/FaceRecognation';
 import SignIn from './components/SignIn/SignIn';
 import Register from './components/Register/Register';
-
-const app = new Clarifai.App({
- apiKey: 'd4182f77bcf646ca8e4a37f4115b05ec'
-});
 
 class App extends Component {
   constructor(props) {
@@ -58,13 +53,11 @@ class App extends Component {
         joined: data.joined
       }
     })
-    console.log(this.state.user)
   }
 
   componentDidMount(){
     fetch('http://localhost:3000/')
       .then(response => response.json())
-      .then(console.log)
   }
 
   displayFaceBox = (Box) => {
@@ -73,7 +66,7 @@ class App extends Component {
   //https://www.faceapp.com/img/content/compare/beard-example-before@3x.jpg
 
   onInputChange = (event) => {
-    this.setState({imageUrl: event.target.value})
+    this.setState({input: event.target.value})
   }
 
   zeroingURL = () => {
@@ -81,29 +74,37 @@ class App extends Component {
   }
 
   onPictureSubmit = () => {
-    //this.setState({imageUrl: this.state.input});
-    app.models.predict('f76196b43bbd45c99b4f3cd8e8b40a8a', this.state.imageUrl)
-    .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
-    .catch(err => console.log(err))
-
-    fetch('http://localhost:3000/image', {
-      method: 'put',
+    this.setState({imageUrl: this.state.input});
+    fetch('http://localhost:3000/imageurl', {
+      method: 'post',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        id : this.state.user.id
-      })
-    })
-    .then(res => res.json())
-    .then(count => {
-      setTimeout(() => {
-        this.setState({
-          user:{
-            ...this.state.user,
-            entries: count
-          }
+          body: JSON.stringify({
+            input : this.state.input
+          })
         })
-      },1000)
+    .then(response => response.json())
+    .then(response => {
+      if(response){
+        fetch('http://localhost:3000/image', {
+          method: 'put',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            id : this.state.user.id
+          })
+        })
+        .then(res => res.json())
+        .then(count => {
+            this.setState({
+              user:{
+                ...this.state.user,
+                entries: count
+              }
+            })
+        })
+      this.displayFaceBox(this.calculateFaceLocation(response))
+      }
     })
+    .catch(err => console.log(err))
   }
 
   onRouteChange = (auth) => {
