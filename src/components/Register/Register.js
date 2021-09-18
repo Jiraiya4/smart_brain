@@ -34,7 +34,7 @@ class Register extends Component{
         })
         isValid
         ?
-        fetch('http://localhost:3000/register', {
+        fetch('https://lit-shelf-68233.herokuapp.com/register', {
             method: 'post',
             headers: {'Content-Type' : 'application/json'},
             body: JSON.stringify({

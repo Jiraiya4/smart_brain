@@ -28,7 +28,7 @@ class SignIn extends React.Component {
         })
         isValid 
         ?
-        fetch('http://localhost:3000/signin', {
+        fetch('https://lit-shelf-68233.herokuapp.com/signin', {
             method: 'post',
             headers: {'Content-Type' : 'application/json'},
             body: JSON.stringify({

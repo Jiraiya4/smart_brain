@@ -56,7 +56,7 @@ class App extends Component {
   }
 
   componentDidMount(){
-    fetch('http://localhost:3000/')
+    fetch('https://lit-shelf-68233.herokuapp.com/')
       .then(response => response.json())
   }
 
@@ -75,7 +75,7 @@ class App extends Component {
 
   onPictureSubmit = () => {
     this.setState({imageUrl: this.state.input});
-    fetch('http://localhost:3000/imageurl', {
+    fetch('https://lit-shelf-68233.herokuapp.com/imageurl', {
       method: 'post',
       headers: {'Content-Type':'application/json'},
           body: JSON.stringify({
@@ -85,7 +85,7 @@ class App extends Component {
     .then(response => response.json())
     .then(response => {
       if(response){
-        fetch('http://localhost:3000/image', {
+        fetch('https://lit-shelf-68233.herokuapp.com/image', {
           method: 'put',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({
@@ -118,7 +118,7 @@ class App extends Component {
   }
 
   onDeleteAccount = () => {
-    fetch('http://localhost:3000/profile/delete', {
+    fetch('https://lit-shelf-68233.herokuapp.com/profile/delete', {
       method: 'delete',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
